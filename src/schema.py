@@ -6,6 +6,8 @@ from timeit import default_timer as timer
 
 def string_hash_or_integer(value):
     """Convert a given value to integer, and if not possible, to a string"""
+    if value == '':
+        return None
     try:
         return int(value)
     except:
@@ -22,10 +24,10 @@ def parse_schema_line(row):
     filtered_row = {key: row[key] for key in field_keys if key in row}
     filtered_row['field number'] = int(filtered_row['field number'])-1
     formatters = {
-        'STRING_HASH': lambda s: s,
-        'INTEGER': lambda i: int(i),
-        'FLOAT': lambda f: float(f),
-        'BOOLEAN': lambda b: bool(int(b)),
+        'STRING_HASH': lambda s: s if s != '' else None,
+        'INTEGER': lambda i: int(i) if i != '' else None,
+        'FLOAT': lambda f: float(f) if f != '' else None,
+        'BOOLEAN': lambda b: bool(int(b)) if b != '' else None,
         'STRING_HASH_OR_INTEGER': string_hash_or_integer
     }
     filtered_row['formatter'] = formatters[filtered_row['format']]
@@ -67,6 +69,16 @@ def data_schemas_from_file(filename):
             data_source['fields'].sort(key=lambda field: field['field number'])
 
         return schemas
+
+def index_of_field(schema, field_name):
+    for field in schema['fields']:
+        if field_name == field['content']:
+            return field['field number']
+    return None
+
+def format_row(schema, row):
+    fields = schema['fields']
+    return [fields[index]['formatter'](item) for index, item in enumerate(row)]
 
 if __name__ == '__main__':
     schemas = data_schemas_from_file("../data/schema.csv")
