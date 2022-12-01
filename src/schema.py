@@ -63,6 +63,9 @@ def data_schemas_from_file(filename):
             source_name = row['file pattern'].split('/')[0]
             schemas[source_name]['fields'].append(parse_schema_line(row))
 
+        for data_source in schemas.values():
+            data_source['fields'].sort(key=lambda field: field['field number'])
+
         return schemas
 
 if __name__ == '__main__':
