@@ -76,6 +76,27 @@ def index_of_field(schema, field_name):
             return field['field number']
     return None
 
+def make_field_getter(index):
+    def getter(a_list):
+            print(a_list, index)
+            return a_list[index]
+    return getter
+
+def field_indexes(schema):
+    """
+    Given the schema of a data set table, build a dictionary of getters.
+
+    The getters are indexed by the column/field name (called "content" in the schema). They are functions which take a row of data (a list) and returns the value at the desired column/field. An example of usage:
+
+    machine_events_getter = field_indexes(schemas['machine events'])
+    row = [0, 1, 2, 3, 4, 5] # a placeholder replacing the real data
+    machine_events_getter['event type'](row)
+    """
+    mapping = {}
+    for field in schema['fields']:
+        mapping[field['content']] = make_field_getter(field['field number'])
+    return mapping
+
 def format_row(schema, row):
     fields = schema['fields']
     return [fields[index]['formatter'](item) for index, item in enumerate(row)]
