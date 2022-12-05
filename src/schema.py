@@ -78,11 +78,10 @@ def index_of_field(schema, field_name):
 
 def make_field_getter(index):
     def getter(a_list):
-            print(a_list, index)
             return a_list[index]
     return getter
 
-def field_indexes(schema):
+def field_getters(schema):
     """
     Given the schema of a data set table, build a dictionary of getters.
 
