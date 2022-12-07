@@ -93,8 +93,8 @@ class Schema:
             result += tabulate(value['fields'],headers='keys')
         return result
     
-    def print_fields(self):
-        print("Fields present in schema :")
+    def print_table_names(self):
+        print("Tables present in schema :")
         for key,_ in self.dictionary.items():
             print("- "+key)
 
@@ -103,13 +103,13 @@ class Schema:
             return self.dictionary[table_name]
         else:
             print(f"ERROR: {table_name} is not a table of this schema.")
-            self.print_fields()
+            self.print_table_names()
             return None
 
     def load_rdd(self,spark_context,table_name):
         if table_name not in self.dictionary:
             print(f"ERROR: No table {table_name} found in schema.")
-            self.print_fields()
+            self.print_table_names()
             return None
         
         path_to_table = self.path + table_name + "/"
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     print("Testing Schema Class")
     print("Loading ../data/schema.csv")
     schema = Schema("../data/schema.csv")
-    schema.print_fields()
+    schema.print_table_names()
 
     field = "machine_attributes"
     print(f'loading table : {field}')
