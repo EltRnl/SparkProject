@@ -42,9 +42,6 @@ def make_field_getter(index):
 
 ## Schema class
 class Schema:
-    path = ""
-    dictionary = dict()
-
     def __init__(self,path_to_schema: str, path_to_data: str = None):
         """
         Create a Schema object given the path to the schema file.
@@ -63,6 +60,7 @@ class Schema:
                 self.path += "/"
         
         # Loading schema file
+        self.dictionary = dict()
         try:
             with open(path_to_schema, newline='') as schema_file:
                 schema_reader = csv.DictReader(schema_file, delimiter=",")
@@ -90,8 +88,8 @@ class Schema:
     def __str__(self) -> str:
         result: str = ""
         for key,value in self.dictionary.items():
-            result += "#########################################################################"
-            result += f"{key} ({value['file pattern']}):"
+            result += "\n#########################################################################\n"
+            result += f"{key} ({value['file pattern']}):\n"
             result += tabulate(value['fields'],headers='keys')
         return result
     
