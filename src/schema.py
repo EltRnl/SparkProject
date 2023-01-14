@@ -2,7 +2,8 @@ import csv
 from tabulate import tabulate
 from sys import exit
 
-## Private functions used by the class
+# Private functions used by the class
+
 
 def string_hash_or_integer(value):
     """Convert a given value to integer, and if not possible, to a string"""
@@ -12,6 +13,7 @@ def string_hash_or_integer(value):
         return int(value)
     except:
         return str(value)
+
 
 def parse_schema_line(row):
     """ Parse a row of the schema to transform the strings into desired format :        
@@ -35,14 +37,17 @@ def parse_schema_line(row):
     filtered_row['mandatory'] = True if filtered_row['mandatory'] == 'YES' else False
     return filtered_row
 
+
 def make_field_getter(index):
     def getter(a_list):
-            return a_list[index]
+        return a_list[index]
     return getter
 
-## Schema class
+# Schema class
+
+
 class Schema:
-    def __init__(self,path_to_schema: str, path_to_data: str = None):
+    def __init__(self, path_to_schema: str, path_to_data: str = None):
         """
         Create a Schema object given the path to the schema file.
 
@@ -52,13 +57,14 @@ class Schema:
         """
         # Extracting the path to data
         if path_to_data is None:
-            split_path = path_to_schema.split('/')[:len(path_to_schema.split('/'))-1]
+            split_path = path_to_schema.split(
+                '/')[:len(path_to_schema.split('/'))-1]
             self.path = ("{}/"*len(split_path)).format(*split_path)
         else:
             self.path = path_to_data
             if self.path[-1] != '/':
                 self.path += "/"
-        
+
         # Loading schema file
         self.dictionary = dict()
         try:
@@ -68,37 +74,39 @@ class Schema:
 
                 for row in iter(schema_rows):
                     source_name = row['file pattern'].split('/')[0]
-                    
+
                     if source_name not in self.dictionary:
                         self.dictionary[source_name] = {
                             'file pattern': row['file pattern'],
                             'fields': list()
                         }
         except:
-            print(f"ERROR: could not open file '{path_to_schema}', did you write the path well ?")
+            print(
+                f"ERROR: could not open file '{path_to_schema}', did you write the path well ?")
             exit()
 
         for row in iter(schema_rows):
             source_name = row['file pattern'].split('/')[0]
-            self.dictionary[source_name]['fields'].append(parse_schema_line(row))
+            self.dictionary[source_name]['fields'].append(
+                parse_schema_line(row))
 
         for data_source in self.dictionary.values():
             data_source['fields'].sort(key=lambda field: field['field number'])
-    
+
     def __str__(self) -> str:
         result: str = ""
-        for key,value in self.dictionary.items():
+        for key, value in self.dictionary.items():
             result += "\n#########################################################################\n"
             result += f"{key} ({value['file pattern']}):\n"
-            result += tabulate(value['fields'],headers='keys')
+            result += tabulate(value['fields'], headers='keys')
         return result
-    
+
     def print_table_names(self):
         print("Tables present in schema :")
-        for key,_ in self.dictionary.items():
+        for key, _ in self.dictionary.items():
             print("- "+key)
 
-    def get_table_schema(self,table_name):
+    def get_table_schema(self, table_name):
         if table_name in self.dictionary:
             return self.dictionary[table_name]
         else:
@@ -106,28 +114,30 @@ class Schema:
             self.print_table_names()
             return None
 
-    def load_rdd(self,spark_context,table_name):
+    def load_rdd(self, spark_context, table_name):
         if table_name not in self.dictionary:
             print(f"ERROR: No table {table_name} found in schema.")
             self.print_table_names()
             return None
-        
+
         path_to_table = self.path + table_name + "/"
         rdd = None
         try:
             rdd_table = self.get_table_schema(table_name)
-            rdd = spark_context.textFile(path_to_table).map(lambda row: [rdd_table['fields'][index]['formatter'](item) for index, item in enumerate(row.split(','))])
+            rdd = spark_context.textFile(path_to_table).map(lambda row: [
+                rdd_table['fields'][index]['formatter'](item) for index, item in enumerate(row.split(','))])
         except:
-            print(f"ERROR: Something went wrong while opening and parsing '{path_to_table}'.")
+            print(
+                f"ERROR: Something went wrong while opening and parsing '{path_to_table}'.")
         return rdd
-    
-    def index_of_field(self,table_name,field_name):
+
+    def index_of_field(self, table_name, field_name):
         for field in self.get_table_schema(table_name)['fields']:
             if field_name == field['content']:
                 return field['field number']
         return None
-    
-    def field_getters(self,table_name):
+
+    def field_getters(self, table_name):
         """
         Given the name of an rdd table, build a dictionary of getters.
 
@@ -139,7 +149,8 @@ class Schema:
         """
         mapping = {}
         for field in self.get_table_schema(table_name)['fields']:
-            mapping[field['content']] = make_field_getter(field['field number'])
+            mapping[field['content']] = make_field_getter(
+                field['field number'])
         return mapping
 
 
@@ -156,5 +167,5 @@ if __name__ == '__main__':
 
     field = "machine_attributes"
     print(f'loading table : {field}')
-    rdd = schema.load_rdd(sc,field)
+    rdd = schema.load_rdd(sc, field)
     print(tabulate(rdd.take(5)))
