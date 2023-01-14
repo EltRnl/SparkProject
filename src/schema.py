@@ -113,6 +113,21 @@ class Schema:
             print(f"ERROR: {table_name} is not a table of this schema.")
             self.print_table_names()
             return None
+    
+    def get_table_fields(self, table_name, include_formatters = False):
+        fields = self.get_table_schema(table_name)['fields']
+        
+        def remove_formatter(field):
+            return {key: value for key, value in field.items() if key != 'formatter'}
+
+        if not include_formatters:
+            return [remove_formatter(field) for field in fields]
+        else:
+            return fields
+
+    def get_table_field_names(self, table_name):
+        fields = self.get_table_schema(table_name)['fields']
+        return [field['content'] for field in fields]
 
     def load_rdd(self, spark_context, table_name):
         if table_name not in self.dictionary:
