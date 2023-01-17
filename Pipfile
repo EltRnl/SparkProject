@@ -7,6 +7,8 @@ name = "pypi"
 tabulate = "*"
 matplotlib = "*"
 ipykernel = "*"
+statistics = "*"
+ipython = "*"
 
 [dev-packages]
 
